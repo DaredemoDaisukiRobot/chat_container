@@ -14,7 +14,7 @@ def login():
     password = request.form.get('password')
     
     # 檢查使用者資訊是否存在於 user.csv
-    with open('module/role/player/user.csv', mode='r') as file:
+    with open('user.csv', mode='r') as file:
         reader = csv.reader(file)
         for row in reader:
             if row[0] == username and row[1] == password:
@@ -50,7 +50,7 @@ def register():
 def chat():
     if 'username' not in session:
         return redirect(url_for('index'))  # 如果沒有登入，重新導向到登入頁面
-    initial_message = "hello " + session['username'] + "\n" + "welcome to Die Dungeons"
+    initial_message = "hello " + session['username']
     return render_template('index.html', initial_message=initial_message)
 
 @app.route('/submit', methods=['POST'])
