@@ -31,14 +31,14 @@ def register():
         password = request.form.get('password')
         
         # 檢查使用者是否已存在
-        with open('module/role/player/user.csv', mode='r') as file:
+        with open('user.csv', mode='r') as file:
             reader = csv.reader(file)
             for row in reader:
                 if row[0] == username:
                     return redirect(url_for('register'))  # 使用者已存在，重新導向到註冊頁面
         
         # 新增使用者到 user.csv
-        with open('module/role/player/user.csv', mode='a', newline='') as file:
+        with open('user.csv', mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([username, password])
         
