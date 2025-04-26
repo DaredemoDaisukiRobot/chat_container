@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . /app
 
 # 安裝必要的套件
-RUN pip install --no-cache-dir flask
+RUN pip install --no-cache-dir flask requests
 
 # 暴露 Flask 預設埠
 EXPOSE 5000
