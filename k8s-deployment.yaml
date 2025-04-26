@@ -5,7 +5,7 @@ metadata:
   labels:
     app: chat-container
 spec:
-  replicas: 2  # 部署兩個副本
+  replicas: 2
   selector:
     matchLabels:
       app: chat-container
@@ -20,14 +20,13 @@ spec:
         ports:
         - containerPort: 5000
         volumeMounts:
-        - name: user-data
-          mountPath: /app/user.csv
-          subPath: user.csv
+        - name: db-storage
+          mountPath: /app/users.db
+          subPath: users.db
       volumes:
-      - name: user-data
-        hostPath:
-          path: /path/to/your/user.csv
-          type: File
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: db-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -41,3 +40,26 @@ spec:
       port: 80
       targetPort: 5000
   type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: db-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/db-storage  # 節點上的實際路徑
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

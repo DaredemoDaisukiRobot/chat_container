@@ -6,6 +6,9 @@ WORKDIR /app
 # 複製應用程式檔案到容器中
 COPY . /app
 
+# 將 user.csv 複製到容器的指定路徑
+COPY user.csv /app/user.csv
+
 # 安裝必要的套件
 RUN pip install --no-cache-dir flask requests
 

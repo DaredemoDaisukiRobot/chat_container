@@ -1,10 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import csv
+import sqlite3  # 使用 SQLite 作為資料庫
 import requests
 import socket
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # 設置一個隨機的 secret key
+
+# 初始化資料庫
+def init_db():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 @app.route('/')
 def index():
@@ -15,13 +30,16 @@ def login():
     username = request.form.get('username')
     password = request.form.get('password')
     
-    # 檢查使用者資訊是否存在於 user.csv
-    with open('user.csv', mode='r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if row[0] == username and row[1] == password:
-                session['username'] = username  # 設置 session
-                return redirect(url_for('chat'))
+    # 檢查使用者資訊是否存在於資料庫
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        session['username'] = username  # 設置 session
+        return redirect(url_for('chat'))
     
     # 如果登入失敗，重新導向到登入頁面
     return redirect(url_for('index'))
@@ -33,16 +51,19 @@ def register():
         password = request.form.get('password')
         
         # 檢查使用者是否已存在
-        with open('user.csv', mode='r') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                if row[0] == username:
-                    return redirect(url_for('register'))  # 使用者已存在，重新導向到註冊頁面
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        user = cursor.fetchone()
+
+        if user:
+            conn.close()
+            return redirect(url_for('register'))  # 使用者已存在，重新導向到註冊頁面
         
-        # 新增使用者到 user.csv
-        with open('user.csv', mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([username, password])
+        # 新增使用者到資料庫
+        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+        conn.commit()
+        conn.close()
         
         return redirect(url_for('index'))  # 註冊成功，重新導向到登入頁面
     
