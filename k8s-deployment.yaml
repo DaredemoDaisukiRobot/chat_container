@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-container-deployment
+  labels:
+    app: chat-container
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-container
+  template:
+    metadata:
+      labels:
+        app: chat-container
+    spec:
+      containers:
+      - name: chat-container
+        image: <your-dockerhub-username>/chat-container:latest
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: user-data
+          mountPath: /app/user.csv
+          subPath: user.csv
+      volumes:
+      - name: user-data
+        hostPath:
+          path: /path/to/your/user.csv
+          type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-container-service
+spec:
+  selector:
+    app: chat-container
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: NodePort
